@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useAuthStore } from "@/store/authStore";
 import { authService } from "@/services/auth";
 import { toast } from "@/hooks/use-toast";
+import { Terminal } from "lucide-react";
 
 export function Login() {
   const navigate = useNavigate();
@@ -29,31 +30,34 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/50 px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      <Card className="w-full max-w-md border-muted">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">登入</CardTitle>
-          <CardDescription className="text-center">請輸入您的帳號密碼</CardDescription>
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Terminal className="h-6 w-6 text-primary" />
+            <CardTitle className="text-2xl font-bold tracking-tight">TaskManager</CardTitle>
+          </div>
+          <CardDescription className="text-center font-mono text-xs">v1.0.0</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit(onSubmit)}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">電子郵件</Label>
-              <Input id="email" type="email" {...register("email")} placeholder="your@email.com" />
-              {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+              <Label htmlFor="username" className="font-mono text-xs">USERNAME</Label>
+              <Input id="username" className="font-mono" {...register("username")} placeholder="your_username" />
+              {errors.username && <p className="text-sm text-red-500 font-mono text-xs">{errors.username.message}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">密碼</Label>
-              <Input id="password" type="password" {...register("password")} placeholder="••••••••" />
-              {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
+              <Label htmlFor="password" className="font-mono text-xs">PASSWORD</Label>
+              <Input id="password" type="password" className="font-mono" {...register("password")} placeholder="••••••••" />
+              {errors.password && <p className="text-sm text-red-500 font-mono text-xs">{errors.password.message}</p>}
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "登入中..." : "登入"}
+          <CardFooter className="flex flex-col space-y-3">
+            <Button type="submit" className="w-full font-mono text-xs" disabled={isSubmitting}>
+              {isSubmitting ? "AUTHENTICATING..." : "LOGIN"}
             </Button>
             <p className="text-sm text-center text-muted-foreground">
-              還沒有帳號？<Link to="/register" className="text-primary hover:underline">立即註冊</Link>
+              還沒有帳號？<Link to="/register" className="text-primary hover:underline font-mono text-xs">REGISTER</Link>
             </p>
           </CardFooter>
         </form>

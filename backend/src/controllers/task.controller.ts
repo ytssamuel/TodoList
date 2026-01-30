@@ -17,6 +17,7 @@ const createTaskSchema = z.object({
 const updateTaskSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   description: z.string().optional().nullable(),
+  status: z.enum(["BACKLOG", "READY", "IN_PROGRESS", "REVIEW", "DONE"]).optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).optional(),
   dueDate: z.string().datetime().optional().nullable(),
 });
@@ -317,6 +318,7 @@ export const updateTask = async (req: AuthRequest, res: Response, next: NextFunc
       data: {
         title: data.title,
         description: data.description,
+        status: data.status,
         priority: data.priority,
         dueDate: data.dueDate ? new Date(data.dueDate) : null,
       },

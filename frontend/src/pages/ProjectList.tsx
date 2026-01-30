@@ -141,11 +141,11 @@ export function ProjectList() {
                   <div className="flex items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Users className="h-4 w-4" />
-                      {project.membersCount}
+                      {project.members?.length || project.membersCount || 0}
                     </div>
                     <div className="flex items-center gap-1">
                       <CheckCircle2 className="h-4 w-4" />
-                      {project.tasksCount.done}/{project.tasksCount.total}
+                      {project.tasksCount?.done || 0}/{project.tasksCount?.total || 0}
                     </div>
                   </div>
                 </CardContent>

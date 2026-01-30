@@ -1,28 +1,9 @@
 export interface User {
   id: string;
   email: string;
+  username: string;
   name: string;
   avatarUrl?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface Project {
-  id: string;
-  name: string;
-  description?: string;
-  owner: {
-    id: string;
-    name: string;
-    avatarUrl?: string;
-  };
-  members: ProjectMember[];
-  membersCount: number;
-  tasksCount: {
-    total: number;
-    done: number;
-  };
-  columns: Column[];
   createdAt: string;
   updatedAt: string;
 }
@@ -37,6 +18,26 @@ export interface ProjectMember {
     avatarUrl?: string;
   };
   joinedAt: string;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  owner?: {
+    id: string;
+    name: string;
+    avatarUrl?: string;
+  };
+  members?: ProjectMember[];
+  membersCount?: number;
+  tasksCount?: {
+    total: number;
+    done: number;
+  };
+  columns?: Column[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Task {

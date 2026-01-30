@@ -17,15 +17,28 @@ import { notFoundHandler } from "@/middlewares/not-found.middleware";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(helmet());
+const isDev = process.env.NODE_ENV !== "production";
+
+app.use(helmet({
+  contentSecurityPolicy: isDev ? undefined : undefined,
+}));
 app.use(cors({
   origin: process.env.CORS_ORIGIN || "http://localhost:5173",
   credentials: true,
 }));
+
+const rateLimitMax = isDev
+  ? Number(process.env.RATE_LIMIT_MAX) || 1000
+  : Number(process.env.RATE_LIMIT_MAX) || 100;
+
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: Number(process.env.RATE_LIMIT_MAX) || 100,
+  max: rateLimitMax,
+  message: { success: false, error: { code: "RATE_LIMIT", message: "Too many requests, please try again later" } },
+  standardHeaders: true,
+  legacyHeaders: false,
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

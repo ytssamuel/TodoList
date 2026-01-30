@@ -10,6 +10,7 @@ datasource db {
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
+  username  String   @unique
   password  String
   name      String?
   avatarUrl String?
@@ -17,10 +18,9 @@ model User {
   updatedAt DateTime @updatedAt
 
   projects        ProjectMember[]
+  ownedProjects   Project[]       @relation("ProjectOwner")
   assignedTasks   Task[]          @relation("Assignee")
   createdTasks    Task[]          @relation("Creator")
-  taskDependencies TaskDependency[] @relation("DependentTask")
-  dependentTasks  TaskDependency[] @relation("DependsOnTask")
 
   @@map("users")
 }
@@ -33,7 +33,7 @@ model Project {
   updatedAt   DateTime @updatedAt
 
   ownerId String
-  owner   User   @relation(fields: [ownerId], references: [id])
+  owner   User   @relation("ProjectOwner", fields: [ownerId], references: [id])
 
   members  ProjectMember[]
   tasks    Task[]
@@ -84,8 +84,8 @@ model Task {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  dependentOn Task[]  @relation("DependentTask")
-  dependencies Task[] @relation("DependsOnTask")
+  dependentOn TaskDependency[] @relation("DependentTask")
+  dependencies TaskDependency[] @relation("DependsOnTask")
 
   @@map("tasks")
 }
@@ -109,10 +109,10 @@ model TaskDependency {
   id           String @id @default(uuid())
 
   taskId       String
-  task         Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  task         Task   @relation("DependentTask", fields: [taskId], references: [id], onDelete: Cascade)
 
   dependsOnId  String
-  dependsOn    Task   @relation(fields: [dependsOnId], references: [id], onDelete: Cascade)
+  dependsOn    Task   @relation("DependsOnTask", fields: [dependsOnId], references: [id], onDelete: Cascade)
 
   @@unique([taskId, dependsOnId])
   @@map("task_dependencies")

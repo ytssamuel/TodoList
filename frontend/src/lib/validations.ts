@@ -1,15 +1,16 @@
 import { z } from "zod";
 
 export const loginSchema = z.object({
-  email: z.string().email("請輸入有效的電子郵件"),
+  username: z.string().min(1, "請輸入使用者名稱"),
   password: z.string().min(1, "請輸入密碼"),
 });
 
 export const registerSchema = z.object({
+  username: z.string().min(3, "使用者名稱至少需要 3 個字元").max(50, "使用者名稱最多 50 個字元"),
   email: z.string().email("請輸入有效的電子郵件"),
   password: z.string().min(8, "密碼至少需要 8 個字元"),
   confirmPassword: z.string(),
-  name: z.string().min(2, "名稱至少需要 2 個字元"),
+  name: z.string().min(2, "名稱至少需要 2 個字元").optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "密碼不相符",
   path: ["confirmPassword"],
@@ -30,6 +31,7 @@ export const taskSchema = z.object({
 });
 
 export const updateProfileSchema = z.object({
+  username: z.string().min(3, "使用者名稱至少需要 3 個字元").max(50).optional(),
   name: z.string().min(2, "名稱至少需要 2 個字元").optional(),
   avatarUrl: z.string().url("請輸入有效的 URL").optional(),
 });
