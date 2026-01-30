@@ -1,6 +1,6 @@
 import api from "@/lib/api";
 import type { ApiResponse, User } from "@/lib/types";
-import type { LoginInput, RegisterInput, UpdateProfileInput } from "@/lib/validations";
+import type { LoginInput, RegisterInput, UpdateProfileInput, ChangePasswordInput } from "@/lib/validations";
 
 export interface AuthResponse {
   user: User;
@@ -38,6 +38,34 @@ export const authService = {
       throw new Error(response.data.error?.message || "更新失敗");
     }
     return response.data.data!;
+  },
+
+  async changePassword(data: ChangePasswordInput): Promise<void> {
+    const response = await api.put<ApiResponse<{ message: string }>>("/auth/password", data);
+    if (!response.data.success) {
+      throw new Error(response.data.error?.message || "密碼更新失敗");
+    }
+  },
+
+  async uploadAvatar(file: File): Promise<User> {
+    const formData = new FormData();
+    formData.append("avatar", file);
+    const response = await api.post<ApiResponse<User>>("/auth/avatar", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    if (!response.data.success) {
+      throw new Error(response.data.error?.message || "上傳失敗");
+    }
+    return response.data.data!;
+  },
+
+  async deleteAccount(password: string): Promise<void> {
+    const response = await api.delete<ApiResponse<{ message: string }>>("/auth/account", {
+      data: { confirmPassword: password },
+    });
+    if (!response.data.success) {
+      throw new Error(response.data.error?.message || "刪除失敗");
+    }
   },
 
   async logout(): Promise<void> {

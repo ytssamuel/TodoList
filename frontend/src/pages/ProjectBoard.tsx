@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { getStatusColor, getStatusLabel, getPriorityColor, getPriorityLabel } from "@/lib/utils";
 import { taskSchema, type TaskInput } from "@/lib/validations";
-import { ArrowLeft, Plus, Lock, ChevronRight, ChevronLeft, Edit2, Trash2, AlertCircle } from "lucide-react";
+import { ArrowLeft, Plus, Lock, ChevronRight, ChevronLeft, Trash2, AlertCircle } from "lucide-react";
 import type { Task, Column } from "@/lib/types";
 
 interface ColumnWithStatus extends Column {
@@ -147,6 +147,8 @@ export function ProjectBoard() {
       await taskService.deleteTask(taskId);
       removeTask(taskId);
       toast({ title: "任務已刪除" });
+      setEditDialogOpen(false);
+      setSelectedTask(null);
     } catch (error: any) {
       toast({ title: "刪除失敗", description: error.message, variant: "destructive" });
     }
@@ -163,18 +165,23 @@ export function ProjectBoard() {
     setEditDialogOpen(true);
   };
 
-  const getTasksByStatus = (status: string) => tasks.filter((t) => t.status === status);
+  const getTasksByStatus = (status: string) => {
+    const priorityOrder = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+    return tasks
+      .filter((t) => t.status === status)
+      .sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+  };
 
   const getColumnInfo = (columnName: string): ColumnWithStatus | undefined => {
     const status = STATUS_OPTIONS.find((s) => s.label === columnName)?.value || columnName.toUpperCase().replace(" ", "_");
     return columns.find((c) => c.name === columnName);
   };
 
-  if (loading) return <div className="p-8 text-center">載入中...</div>;
+  if (loading) return <div className="h-[calc(100vh-100px)] flex items-center justify-center">載入中...</div>;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col h-[calc(100vh-100px)]">
+      <div className="flex items-center justify-between shrink-0 pb-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate("/projects")}>
             <ArrowLeft className="h-4 w-4" />
@@ -233,7 +240,10 @@ export function ProjectBoard() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+      <Dialog open={editDialogOpen} onOpenChange={(open) => {
+          setEditDialogOpen(open);
+          if (!open) setSelectedTask(null);
+        }}>
         <DialogContent>
           <form onSubmit={editForm.handleSubmit(onEditSubmit)}>
             <DialogHeader>
@@ -298,7 +308,7 @@ export function ProjectBoard() {
         </DialogContent>
       </Dialog>
 
-      <div className="flex gap-4 overflow-x-auto pb-4">
+      <div className="flex-1 flex gap-4 overflow-x-auto pb-4 min-h-0 scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent">
         {STATUS_OPTIONS.map((statusOpt, index) => {
           const column = getColumnInfo(statusOpt.label);
           const tasksInColumn = getTasksByStatus(statusOpt.value);
@@ -307,57 +317,57 @@ export function ProjectBoard() {
           const nextStatus = getNextStatus(statusOpt.value);
 
           return (
-            <div key={statusOpt.value} className="flex-shrink-0 w-80">
-              <div className={`bg-muted rounded-lg p-4 ${isLocked ? "border-l-4 border-orange-500" : ""}`}>
-                <div className="flex items-center justify-between mb-3">
+            <div key={statusOpt.value} className="flex-shrink-0 w-80 flex flex-col h-full">
+              <div className={`bg-muted/50 rounded-lg p-3 flex-1 flex flex-col min-h-0 ${isLocked ? "border-l-4 border-orange-500" : ""}`}>
+                <div className="flex items-center justify-between mb-2 shrink-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold">{statusOpt.label}</h3>
-                    {isLocked && <Lock className="h-4 w-4 text-orange-500" title="此列需要按順序完成" />}
+                    <h3 className="font-semibold text-sm">{statusOpt.label}</h3>
+                    {isLocked && <Lock className="h-3 w-3 text-orange-500" title="此列需要按順序完成" />}
                   </div>
-                  <Badge variant="secondary">{tasksInColumn.length}</Badge>
+                  <Badge variant="secondary" className="text-xs">{tasksInColumn.length}</Badge>
                 </div>
-                <div className="space-y-2">
+                <div className="flex-1 overflow-y-auto space-y-2 min-h-0 scrollbar-thin scrollbar-thumb-muted-foreground/20">
                   {tasksInColumn.map((task) => {
                     const canMoveNext = nextStatus !== null;
                     const canMovePrev = prevStatus !== null;
 
-                    return (
-                      <div key={task.id} className="bg-card p-3 rounded shadow-sm group">
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="font-medium line-clamp-2">{task.title}</p>
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={() => openEditDialog(task)}
-                            >
-                              <Edit2 className="h-3 w-3" />
-                            </Button>
+                      return (
+                        <div
+                          key={task.id}
+                          className="bg-card p-2 rounded shadow-sm cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+                          onClick={() => openEditDialog(task)}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="font-medium text-sm line-clamp-2">{task.title}</p>
                           </div>
-                        </div>
-                        {task.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-2 mt-1">{task.description}</p>
-                        )}
-                        <div className="flex items-center justify-between mt-2">
-                          <Badge className={getPriorityColor(task.priority)}>{getPriorityLabel(task.priority)}</Badge>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-6 w-6"
-                              disabled={!canMovePrev}
-                              onClick={() => handleMoveTask(task, "prev")}
-                              title="移到上一階段"
-                            >
-                              <ChevronLeft className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-6 w-6"
-                              disabled={!canMoveNext}
-                              onClick={() => handleMoveTask(task, "next")}
+                          {task.description && (
+                            <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{task.description}</p>
+                          )}
+                          <div className="flex items-center justify-between mt-2">
+                            <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>{getPriorityLabel(task.priority)}</Badge>
+                            <div className="flex items-center gap-0.5">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-5 w-5"
+                                disabled={!canMovePrev}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMoveTask(task, "prev");
+                                }}
+                                title="移到上一階段"
+                              >
+                                <ChevronLeft className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-5 w-5"
+                                disabled={!canMoveNext}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleMoveTask(task, "next");
+                                }}
                               title="移到下一階段"
                             >
                               <ChevronRight className="h-3 w-3" />

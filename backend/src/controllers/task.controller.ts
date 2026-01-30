@@ -426,14 +426,14 @@ export const updateTaskStatus = async (req: AuthRequest, res: Response, next: Ne
     }
 
     if (task.status !== data.status) {
-      const column = task.project.columns.find((c) => c.orderIndex === task.orderIndex);
+      const column = task.project.columns.find((c) => c.name === task.status);
 
       if (column?.isLocked) {
         const previousTasks = await prisma.task.findMany({
           where: {
             projectId: task.projectId,
+            status: { not: "DONE", equals: task.status },
             orderIndex: { lt: task.orderIndex },
-            status: { not: "DONE" },
           },
           orderBy: { orderIndex: "desc" },
         });
@@ -453,6 +453,39 @@ export const updateTaskStatus = async (req: AuthRequest, res: Response, next: Ne
         );
         return;
       }
+
+      const lastTaskInNewStatus = await prisma.task.findFirst({
+        where: {
+          projectId: task.projectId,
+          status: data.status,
+        },
+        orderBy: { orderIndex: "desc" },
+      });
+
+      const newOrderIndex = (lastTaskInNewStatus?.orderIndex ?? -1) + 1;
+
+      const updatedTask = await prisma.task.update({
+        where: { id },
+        data: { status: data.status, orderIndex: newOrderIndex },
+        include: {
+          assignee: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+            },
+          },
+          createdBy: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      res.json(successResponse(updatedTask));
+      return;
     }
 
     const updatedTask = await prisma.task.update({

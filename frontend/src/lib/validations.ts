@@ -36,8 +36,23 @@ export const updateProfileSchema = z.object({
   avatarUrl: z.string().url("請輸入有效的 URL").optional(),
 });
 
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "請輸入目前密碼"),
+  newPassword: z.string().min(8, "新密碼至少需要 8 個字元"),
+  confirmPassword: z.string(),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "新密碼不相符",
+  path: ["confirmPassword"],
+});
+
+export const deleteAccountSchema = z.object({
+  confirmPassword: z.string().min(1, "請輸入密碼以確認"),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type ProjectInput = z.infer<typeof projectSchema>;
 export type TaskInput = z.infer<typeof taskSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type DeleteAccountInput = z.infer<typeof deleteAccountSchema>;

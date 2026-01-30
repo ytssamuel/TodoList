@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import dotenv from "dotenv";
+import path from "path";
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ const isDev = process.env.NODE_ENV !== "production";
 
 app.use(helmet({
   contentSecurityPolicy: isDev ? undefined : undefined,
+  crossOriginResourcePolicy: { policy: "cross-origin" },
 }));
 app.use(cors({
   origin: process.env.CORS_ORIGIN || "http://localhost:5173",
@@ -41,6 +43,14 @@ app.use(rateLimit({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads"), {
+  setHeaders: (res) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  },
+}));
 
 app.get("/", (req, res) => {
   res.json({

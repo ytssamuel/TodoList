@@ -6,6 +6,7 @@ import { Register } from "@/pages/Register";
 import { Dashboard } from "@/pages/Dashboard";
 import { ProjectList } from "@/pages/ProjectList";
 import { ProjectBoard } from "@/pages/ProjectBoard";
+import { Profile } from "@/pages/Profile";
 import { ApiTest } from "@/pages/ApiTest";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -24,6 +25,7 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="projects" element={<ProjectList />} />
           <Route path="projects/:id" element={<ProjectBoard />} />
+          <Route path="settings" element={<Profile />} />
         </Route>
         <Route path="/api-test" element={<ApiTest />} />
       </Routes>
