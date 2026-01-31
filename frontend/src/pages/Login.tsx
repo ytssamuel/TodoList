@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { useAuthStore } from "@/store/authStore";
 import { authService } from "@/services/auth";
 import { toast } from "@/hooks/use-toast";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Terminal } from "lucide-react";
 
 export function Login() {
@@ -30,7 +31,8 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 relative">
+      <ThemeToggle className="absolute top-4 right-4" />
       <Card className="w-full max-w-md border-muted">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center gap-2 mb-2">

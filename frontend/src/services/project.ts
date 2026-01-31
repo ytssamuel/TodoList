@@ -36,7 +36,7 @@ export const projectService = {
   },
 
   async deleteProject(id: string): Promise<void> {
-    const response = await api.delete<ApiResponse>(`/projects/${id}`);
+    const response = await api.delete<ApiResponse<void>>(`/projects/${id}`);
     if (!response.data.success) {
       throw new Error(response.data.error?.message || "刪除專案失敗");
     }
@@ -59,7 +59,7 @@ export const projectService = {
   },
 
   async removeMember(projectId: string, userId: string): Promise<void> {
-    const response = await api.delete<ApiResponse>(`/projects/${projectId}/members/${userId}`);
+    const response = await api.delete<ApiResponse<void>>(`/projects/${projectId}/members/${userId}`);
     if (!response.data.success) {
       throw new Error(response.data.error?.message || "移除成員失敗");
     }

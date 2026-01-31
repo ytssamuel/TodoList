@@ -7,6 +7,7 @@ interface ThemeState {
   theme: Theme;
   resolvedTheme: "light" | "dark";
   setTheme: (theme: Theme) => void;
+  applyTheme: () => void;
 }
 
 export const useThemeStore = create<ThemeState>()(

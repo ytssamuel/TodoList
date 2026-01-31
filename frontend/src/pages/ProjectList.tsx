@@ -13,7 +13,6 @@ import { useProjectStore } from "@/store/projectStore";
 import { projectService } from "@/services/project";
 import { toast } from "@/hooks/use-toast";
 import { Plus, FolderKanban, Users, CheckCircle2, Trash2 } from "lucide-react";
-import type { Project } from "@/lib/types";
 
 export function ProjectList() {
   const navigate = useNavigate();
@@ -67,19 +66,19 @@ export function ProjectList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">專案</h1>
-          <p className="text-muted-foreground">管理您的所有專案</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">專案</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">管理您的所有專案</p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               新建專案
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md">
             <form onSubmit={handleSubmit(onSubmit)}>
               <DialogHeader>
                 <DialogTitle>建立新專案</DialogTitle>
@@ -96,9 +95,9 @@ export function ProjectList() {
                   <Textarea id="description" {...register("description")} placeholder="專案描述..." />
                 </div>
               </div>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>取消</Button>
-                <Button type="submit" disabled={isSubmitting}>
+              <DialogFooter className="flex-col sm:flex-row gap-2">
+                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="w-full sm:w-auto">取消</Button>
+                <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
                   {isSubmitting ? "建立中..." : "建立"}
                 </Button>
               </DialogFooter>
@@ -108,27 +107,27 @@ export function ProjectList() {
       </div>
 
       {loading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i} className="animate-pulse h-40" />
           ))}
         </div>
       ) : projects.length === 0 ? (
-        <Card className="p-12 text-center">
+        <Card className="p-8 sm:p-12 text-center">
           <FolderKanban className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">尚未有專案</h3>
           <p className="text-muted-foreground mb-4">建立您的第一個專案來開始管理任務</p>
           <Button onClick={() => setDialogOpen(true)}>建立專案</Button>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((project) => (
             <div key={project.id} onClick={() => navigate(`/projects/${project.id}`)}>
               <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full relative group">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute top-2 right-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                   onClick={(e) => handleDelete(project.id, e)}
                 >
                   <Trash2 className="h-4 w-4 text-destructive" />

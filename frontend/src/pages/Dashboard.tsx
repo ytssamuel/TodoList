@@ -27,13 +27,13 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">儀表板</h1>
-          <p className="text-muted-foreground">歡迎回來！這是您的專案概覽。</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">儀表板</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">歡迎回來！這是您的專案概覽。</p>
         </div>
         <Link to="/projects">
-          <Button>
+          <Button className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             新建專案
           </Button>
@@ -41,7 +41,7 @@ export function Dashboard() {
       </div>
 
       {loading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <Card key={i} className="animate-pulse">
               <CardHeader>
@@ -54,7 +54,7 @@ export function Dashboard() {
           ))}
         </div>
       ) : projects.length === 0 ? (
-        <Card className="p-12 text-center">
+        <Card className="p-8 sm:p-12 text-center">
           <FolderKanban className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold mb-2">尚未有專案</h3>
           <p className="text-muted-foreground mb-4">建立您的第一個專案來開始管理任務</p>
@@ -63,7 +63,7 @@ export function Dashboard() {
           </Link>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((project) => (
             <Link key={project.id} to={`/projects/${project.id}`}>
               <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
@@ -79,7 +79,7 @@ export function Dashboard() {
                     </div>
                     <div className="flex items-center gap-1">
                       <CheckCircle2 className="h-4 w-4" />
-                      {project.tasksCount.done}/{project.tasksCount.total}
+                      {project.tasksCount?.done || 0}/{project.tasksCount?.total || 0}
                     </div>
                   </div>
                 </CardContent>

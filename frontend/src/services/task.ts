@@ -36,7 +36,7 @@ export const taskService = {
   },
 
   async deleteTask(id: string): Promise<void> {
-    const response = await api.delete<ApiResponse>(`/tasks/${id}`);
+    const response = await api.delete<ApiResponse<void>>(`/tasks/${id}`);
     if (!response.data.success) {
       throw new Error(response.data.error?.message || "刪除任務失敗");
     }
@@ -67,7 +67,7 @@ export const taskService = {
   },
 
   async removeDependency(taskId: string, depId: string): Promise<void> {
-    const response = await api.delete<ApiResponse>(`/tasks/${taskId}/dependencies/${depId}`);
+    const response = await api.delete<ApiResponse<void>>(`/tasks/${taskId}/dependencies/${depId}`);
     if (!response.data.success) {
       throw new Error(response.data.error?.message || "移除依賴失敗");
     }

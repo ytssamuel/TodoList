@@ -14,9 +14,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { getStatusColor, getStatusLabel, getPriorityColor, getPriorityLabel } from "@/lib/utils";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { getPriorityColor, getPriorityLabel, getStatusLabel } from "@/lib/utils";
 import { taskSchema, type TaskInput } from "@/lib/validations";
-import { ArrowLeft, Plus, Lock, ChevronRight, ChevronLeft, Trash2, AlertCircle } from "lucide-react";
+import { ArrowLeft, Plus, Lock, ChevronRight, ChevronLeft, ChevronDown, Trash2 } from "lucide-react";
 import type { Task, Column } from "@/lib/types";
 
 interface ColumnWithStatus extends Column {
@@ -63,6 +64,7 @@ export function ProjectBoard() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [expandedColumns, setExpandedColumns] = useState<string[]>(["BACKLOG", "IN_PROGRESS"]);
 
   const createForm = useForm<TaskInput>({
     resolver: zodResolver(taskSchema),
@@ -166,39 +168,97 @@ export function ProjectBoard() {
   };
 
   const getTasksByStatus = (status: string) => {
-    const priorityOrder = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+    const priorityOrder: Record<string, number> = { URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
     return tasks
       .filter((t) => t.status === status)
       .sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
   };
 
   const getColumnInfo = (columnName: string): ColumnWithStatus | undefined => {
-    const status = STATUS_OPTIONS.find((s) => s.label === columnName)?.value || columnName.toUpperCase().replace(" ", "_");
-    return columns.find((c) => c.name === columnName);
+    return columns.find((c) => c.name === columnName) as ColumnWithStatus | undefined;
+  };
+
+  const toggleColumn = (status: string) => {
+    setExpandedColumns((prev) =>
+      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
+    );
   };
 
   if (loading) return <div className="h-[calc(100vh-100px)] flex items-center justify-center">載入中...</div>;
 
-  return (
-    <div className="flex flex-col h-[calc(100vh-100px)]">
-      <div className="flex items-center justify-between shrink-0 pb-4">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/projects")}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">{currentProject?.name}</h1>
-            <p className="text-muted-foreground">{currentProject?.description || "無描述"}</p>
+  // 任務卡片元件
+  const TaskCard = ({ task }: { task: Task }) => {
+    const canMoveNext = getNextStatus(task.status) !== null;
+    const canMovePrev = getPrevStatus(task.status) !== null;
+
+    return (
+      <div
+        className="bg-card p-3 rounded-lg shadow-sm cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+        onClick={() => openEditDialog(task)}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <p className="font-medium text-sm line-clamp-2">{task.title}</p>
+        </div>
+        {task.description && (
+          <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{task.description}</p>
+        )}
+        <div className="flex items-center justify-between mt-2">
+          <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>{getPriorityLabel(task.priority)}</Badge>
+          <div className="flex items-center gap-0.5">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              disabled={!canMovePrev}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleMoveTask(task, "prev");
+              }}
+              title="移到上一階段"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              disabled={!canMoveNext}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleMoveTask(task, "next");
+              }}
+              title="移到下一階段"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)}>
+      </div>
+    );
+  };
+
+  return (
+    <div className="flex flex-col h-[calc(100vh-theme(spacing.14)-theme(spacing.16))] md:h-[calc(100vh-100px)]">
+      {/* 頂部標題列 */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shrink-0 pb-4">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate("/projects")} className="shrink-0">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold truncate">{currentProject?.name}</h1>
+            <p className="text-muted-foreground text-sm truncate">{currentProject?.description || "無描述"}</p>
+          </div>
+        </div>
+        <Button onClick={() => setCreateDialogOpen(true)} className="w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" />
           新建任務
         </Button>
       </div>
 
+      {/* 建立任務對話框 */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <form onSubmit={createForm.handleSubmit(onCreateSubmit)}>
             <DialogHeader>
               <DialogTitle>建立新任務</DialogTitle>
@@ -230,9 +290,9 @@ export function ProjectBoard() {
                 </Select>
               </div>
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>取消</Button>
-              <Button type="submit" disabled={createForm.formState.isSubmitting}>
+            <DialogFooter className="flex-col sm:flex-row gap-2">
+              <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)} className="w-full sm:w-auto">取消</Button>
+              <Button type="submit" disabled={createForm.formState.isSubmitting} className="w-full sm:w-auto">
                 {createForm.formState.isSubmitting ? "建立中..." : "建立"}
               </Button>
             </DialogFooter>
@@ -240,11 +300,12 @@ export function ProjectBoard() {
         </DialogContent>
       </Dialog>
 
+      {/* 編輯任務對話框 */}
       <Dialog open={editDialogOpen} onOpenChange={(open) => {
-          setEditDialogOpen(open);
-          if (!open) setSelectedTask(null);
-        }}>
-        <DialogContent>
+        setEditDialogOpen(open);
+        if (!open) setSelectedTask(null);
+      }}>
+        <DialogContent className="sm:max-w-md">
           <form onSubmit={editForm.handleSubmit(onEditSubmit)}>
             <DialogHeader>
               <DialogTitle>編輯任務</DialogTitle>
@@ -292,14 +353,14 @@ export function ProjectBoard() {
                 </div>
               </div>
             </div>
-            <DialogFooter className="justify-between">
-              <Button type="button" variant="destructive" onClick={() => selectedTask && handleDeleteTask(selectedTask.id)}>
+            <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between gap-2">
+              <Button type="button" variant="destructive" onClick={() => selectedTask && handleDeleteTask(selectedTask.id)} className="w-full sm:w-auto">
                 <Trash2 className="mr-2 h-4 w-4" />
                 刪除
               </Button>
-              <div className="flex gap-2">
-                <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>取消</Button>
-                <Button type="submit" disabled={editForm.formState.isSubmitting}>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)} className="w-full sm:w-auto">取消</Button>
+                <Button type="submit" disabled={editForm.formState.isSubmitting} className="w-full sm:w-auto">
                   {editForm.formState.isSubmitting ? "儲存中..." : "儲存"}
                 </Button>
               </div>
@@ -308,78 +369,72 @@ export function ProjectBoard() {
         </DialogContent>
       </Dialog>
 
-      <div className="flex-1 flex gap-4 overflow-x-auto pb-4 min-h-0 scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent">
-        {STATUS_OPTIONS.map((statusOpt, index) => {
+      {/* 桌面版：水平看板 */}
+      <div className="hidden md:flex flex-1 gap-4 overflow-x-auto pb-4 min-h-0 scrollbar-thin">
+        {STATUS_OPTIONS.map((statusOpt) => {
           const column = getColumnInfo(statusOpt.label);
           const tasksInColumn = getTasksByStatus(statusOpt.value);
           const isLocked = column?.isLocked;
-          const prevStatus = getPrevStatus(statusOpt.value);
-          const nextStatus = getNextStatus(statusOpt.value);
 
           return (
-            <div key={statusOpt.value} className="flex-shrink-0 w-80 flex flex-col h-full">
+            <div key={statusOpt.value} className="flex-shrink-0 w-72 lg:w-80 flex flex-col h-full">
               <div className={`bg-muted/50 rounded-lg p-3 flex-1 flex flex-col min-h-0 ${isLocked ? "border-l-4 border-orange-500" : ""}`}>
                 <div className="flex items-center justify-between mb-2 shrink-0">
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-sm">{statusOpt.label}</h3>
-                    {isLocked && <Lock className="h-3 w-3 text-orange-500" title="此列需要按順序完成" />}
+                    {isLocked && <Lock className="h-3 w-3 text-orange-500" />}
                   </div>
                   <Badge variant="secondary" className="text-xs">{tasksInColumn.length}</Badge>
                 </div>
-                <div className="flex-1 overflow-y-auto space-y-2 min-h-0 scrollbar-thin scrollbar-thumb-muted-foreground/20">
-                  {tasksInColumn.map((task) => {
-                    const canMoveNext = nextStatus !== null;
-                    const canMovePrev = prevStatus !== null;
-
-                      return (
-                        <div
-                          key={task.id}
-                          className="bg-card p-2 rounded shadow-sm cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
-                          onClick={() => openEditDialog(task)}
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="font-medium text-sm line-clamp-2">{task.title}</p>
-                          </div>
-                          {task.description && (
-                            <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{task.description}</p>
-                          )}
-                          <div className="flex items-center justify-between mt-2">
-                            <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>{getPriorityLabel(task.priority)}</Badge>
-                            <div className="flex items-center gap-0.5">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-5 w-5"
-                                disabled={!canMovePrev}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleMoveTask(task, "prev");
-                                }}
-                                title="移到上一階段"
-                              >
-                                <ChevronLeft className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-5 w-5"
-                                disabled={!canMoveNext}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleMoveTask(task, "next");
-                                }}
-                              title="移到下一階段"
-                            >
-                              <ChevronRight className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div className="flex-1 overflow-y-auto space-y-2 min-h-0 scrollbar-thin">
+                  {tasksInColumn.map((task) => (
+                    <TaskCard key={task.id} task={task} />
+                  ))}
                 </div>
               </div>
             </div>
+          );
+        })}
+      </div>
+
+      {/* 手機版：垂直堆疊可展開 */}
+      <div className="md:hidden flex-1 overflow-y-auto space-y-3 scrollbar-thin">
+        {STATUS_OPTIONS.map((statusOpt) => {
+          const column = getColumnInfo(statusOpt.label);
+          const tasksInColumn = getTasksByStatus(statusOpt.value);
+          const isLocked = column?.isLocked;
+          const isExpanded = expandedColumns.includes(statusOpt.value);
+
+          return (
+            <Collapsible
+              key={statusOpt.value}
+              open={isExpanded}
+              onOpenChange={() => toggleColumn(statusOpt.value)}
+            >
+              <div className={`bg-muted/50 rounded-lg ${isLocked ? "border-l-4 border-orange-500" : ""}`}>
+                <CollapsibleTrigger asChild>
+                  <button className="w-full p-3 flex items-center justify-between text-left">
+                    <div className="flex items-center gap-2">
+                      <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? "" : "-rotate-90"}`} />
+                      <h3 className="font-semibold text-sm">{statusOpt.label}</h3>
+                      {isLocked && <Lock className="h-3 w-3 text-orange-500" />}
+                    </div>
+                    <Badge variant="secondary" className="text-xs">{tasksInColumn.length}</Badge>
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-3 pb-3 space-y-2">
+                    {tasksInColumn.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-4">沒有任務</p>
+                    ) : (
+                      tasksInColumn.map((task) => (
+                        <TaskCard key={task.id} task={task} />
+                      ))
+                    )}
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
           );
         })}
       </div>

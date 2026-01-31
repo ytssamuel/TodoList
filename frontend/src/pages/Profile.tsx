@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthStore } from "@/store/authStore";
 import { authService } from "@/services/auth";
-import { changePasswordSchema, deleteAccountSchema, type ChangePasswordInput, type DeleteAccountInput } from "@/lib/validations";
+import { changePasswordSchema, type ChangePasswordInput } from "@/lib/validations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,10 +36,6 @@ export function Profile() {
 
   const passwordForm = useForm<ChangePasswordInput>({
     resolver: zodResolver(changePasswordSchema),
-  });
-
-  const deleteForm = useForm<DeleteAccountInput>({
-    resolver: zodResolver(deleteAccountSchema),
   });
 
   useEffect(() => {
@@ -139,42 +135,42 @@ export function Profile() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
       <div className="flex items-center gap-3">
-        <Terminal className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold tracking-tight">用戶設定</h1>
+        <Terminal className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight">用戶設定</h1>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="profile" className="gap-2">
+          <TabsTrigger value="profile" className="gap-1 sm:gap-2 text-xs sm:text-sm">
             <User className="h-4 w-4" />
-            <span className="hidden sm:inline">個人資料</span>
+            <span className="hidden xs:inline sm:inline">個人資料</span>
           </TabsTrigger>
-          <TabsTrigger value="security" className="gap-2">
+          <TabsTrigger value="security" className="gap-1 sm:gap-2 text-xs sm:text-sm">
             <Lock className="h-4 w-4" />
-            <span className="hidden sm:inline">安全性</span>
+            <span className="hidden xs:inline sm:inline">安全性</span>
           </TabsTrigger>
-          <TabsTrigger value="danger" className="gap-2 text-destructive">
+          <TabsTrigger value="danger" className="gap-1 sm:gap-2 text-xs sm:text-sm text-destructive">
             <Trash2 className="h-4 w-4" />
-            <span className="hidden sm:inline">危險區域</span>
+            <span className="hidden xs:inline sm:inline">危險區域</span>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
           <Card>
-            <CardHeader>
-              <CardTitle>個人資料</CardTitle>
+            <CardHeader className="pb-4">
+              <CardTitle className="text-lg sm:text-xl">個人資料</CardTitle>
               <CardDescription>管理您的帳戶資訊</CardDescription>
             </CardHeader>
             <form onSubmit={editForm.handleSubmit(onEditSubmit)}>
               <CardContent className="space-y-6">
-                <div className="flex items-center gap-6">
-                  <Avatar className="h-24 w-24">
+                <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+                  <Avatar className="h-20 w-20 sm:h-24 sm:w-24">
                     <AvatarImage src={getAvatarUrl()} />
-                    <AvatarFallback className="text-2xl">{user?.name ? getInitials(user.name) : "?"}</AvatarFallback>
+                    <AvatarFallback className="text-xl sm:text-2xl">{user?.name ? getInitials(user.name) : "?"}</AvatarFallback>
                   </Avatar>
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-center sm:text-left">
                     <input
                       type="file"
                       ref={fileInputRef}
@@ -182,7 +178,7 @@ export function Profile() {
                       accept="image/*"
                       className="hidden"
                     />
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap justify-center sm:justify-start gap-2">
                       <Button
                         type="button"
                         variant="outline"
@@ -313,7 +309,7 @@ export function Profile() {
       </Tabs>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="sm:max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-destructive">確定要刪除帳號嗎？</AlertDialogTitle>
             <AlertDialogDescription>
@@ -330,12 +326,12 @@ export function Profile() {
               className="font-mono"
             />
           </div>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel className="w-full sm:w-auto">取消</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteAccount}
               disabled={!deletePassword || isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {isDeleting ? "刪除中..." : "刪除帳號"}
             </AlertDialogAction>

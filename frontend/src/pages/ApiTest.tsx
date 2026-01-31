@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,12 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { authService } from "@/services/auth";
 import { projectService } from "@/services/project";
-import { taskService } from "@/services/task";
 import { toast } from "@/hooks/use-toast";
 
 export function ApiTest() {
-  const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [token, setToken] = useState(localStorage.getItem("token") || "");
   const [response, setResponse] = useState<string>("");
@@ -22,7 +19,7 @@ export function ApiTest() {
     setLoading(true);
     setResponse("");
     try {
-      const result = await authService.login({ email, password });
+      const result = await authService.login({ username, password });
       setToken(result.accessToken);
       localStorage.setItem("token", result.accessToken);
       setResponse(JSON.stringify(result, null, 2));
@@ -74,8 +71,8 @@ export function ApiTest() {
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label>電子郵件</Label>
-                  <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="user@example.com" />
+                  <Label>使用者名稱</Label>
+                  <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="username" />
                 </div>
                 <div className="space-y-2">
                   <Label>密碼</Label>
