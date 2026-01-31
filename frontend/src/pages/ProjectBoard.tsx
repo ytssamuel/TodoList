@@ -17,7 +17,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { getPriorityColor, getPriorityLabel, getStatusLabel } from "@/lib/utils";
 import { taskSchema, type TaskInput } from "@/lib/validations";
-import { ArrowLeft, Plus, Lock, ChevronRight, ChevronLeft, ChevronDown, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Lock, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import type { Task, Column } from "@/lib/types";
 
 interface ColumnWithStatus extends Column {
@@ -187,9 +187,14 @@ export function ProjectBoard() {
   if (loading) return <div className="h-[calc(100vh-100px)] flex items-center justify-center">載入中...</div>;
 
   // 任務卡片元件
-  const TaskCard = ({ task }: { task: Task }) => {
+  const TaskCard = ({ task, isMobile = false }: { task: Task; isMobile?: boolean }) => {
     const canMoveNext = getNextStatus(task.status) !== null;
     const canMovePrev = getPrevStatus(task.status) !== null;
+
+    // 手機版：上下箭頭（上 = 往前一個狀態，下 = 往後一個狀態）
+    // 桌面版：左右箭頭
+    const PrevIcon = isMobile ? ChevronUp : ChevronLeft;
+    const NextIcon = isMobile ? ChevronDown : ChevronRight;
 
     return (
       <div
@@ -204,7 +209,7 @@ export function ProjectBoard() {
         )}
         <div className="flex items-center justify-between mt-2">
           <Badge className={`text-xs ${getPriorityColor(task.priority)}`}>{getPriorityLabel(task.priority)}</Badge>
-          <div className="flex items-center gap-0.5">
+          <div className={`flex items-center gap-0.5 ${isMobile ? "flex-col" : "flex-row"}`}>
             <Button
               variant="ghost"
               size="icon"
@@ -216,7 +221,7 @@ export function ProjectBoard() {
               }}
               title="移到上一階段"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <PrevIcon className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
@@ -229,7 +234,7 @@ export function ProjectBoard() {
               }}
               title="移到下一階段"
             >
-              <ChevronRight className="h-4 w-4" />
+              <NextIcon className="h-4 w-4" />
             </Button>
           </div>
         </div>
@@ -386,7 +391,7 @@ export function ProjectBoard() {
                   </div>
                   <Badge variant="secondary" className="text-xs">{tasksInColumn.length}</Badge>
                 </div>
-                <div className="flex-1 overflow-y-auto space-y-2 min-h-0 scrollbar-thin">
+                <div className="flex-1 overflow-y-auto space-y-2 min-h-0 scrollbar-thin p-0.5 -m-0.5">
                   {tasksInColumn.map((task) => (
                     <TaskCard key={task.id} task={task} />
                   ))}
@@ -428,7 +433,7 @@ export function ProjectBoard() {
                       <p className="text-sm text-muted-foreground text-center py-4">沒有任務</p>
                     ) : (
                       tasksInColumn.map((task) => (
-                        <TaskCard key={task.id} task={task} />
+                        <TaskCard key={task.id} task={task} isMobile />
                       ))
                     )}
                   </div>
