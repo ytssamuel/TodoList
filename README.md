@@ -3,18 +3,23 @@
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-green.svg)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-18+-61dafb.svg)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5+-3178c6.svg)](https://www.typescriptlang.org/)
 
 一個功能完整的全棧待辦事項管理網站，參照專案管理模式，支援任務狀態流轉、任務依賴關係、看板列順序鎖定等功能。
+
+> **最後更新**: 2026-02-02 | **版本**: v1.0.0
 
 ## 📋 目錄
 
 - [功能特色](#功能特色)
+- [最新更新](#最新更新)
 - [技術棧](#技術棧)
 - [專案結構](#專案結構)
 - [快速開始](#快速開始)
 - [環境變數](#環境變數)
 - [API 文件](#api-文件)
 - [部署](#部署)
+- [開發日誌](#開發日誌)
 - [貢獻指南](#貢獻指南)
 - [授權](#授權)
 
@@ -44,8 +49,24 @@
 ### 進階功能
 - [x] 任務依賴關係
 - [x] 看板列順序鎖定
-- [x] 深色/淺色主題
-- [x] RWD 響應式設計
+- [x] 深色/淺色主題（支援系統跟隨）
+- [x] RWD 響應式設計（手機/平板/桌面）
+- [x] 個人設定頁面（頭像上傳、密碼修改）
+- [x] 自動化測試（Vitest）
+
+---
+
+## 🆕 最新更新
+
+### v1.0.0 (2026-02-02)
+
+| 日期 | 更新內容 |
+|------|----------|
+| 2026-02-02 | 整理 SQL 遷移檔案結構 |
+| 2026-01-31 | 修復看板頁面 Bug、新增 RWD 響應式設計支援 |
+| 2026-01-30 | 新增個人設定頁面、頭像上傳功能 |
+| 2026-01-30 | 新增深色/淺色主題切換、前後端自動化測試 |
+| 2026-01-30 | 專案初始化，完成基礎架構建設 |
 
 ---
 
@@ -64,6 +85,8 @@
 | React Hook Form 7+ | 表單處理 |
 | Zod | 資料驗證 |
 | Axios | HTTP 客戶端 |
+| Vitest | 單元/整合測試 |
+| @radix-ui/react-collapsible | 可折疊組件 |
 
 ### 後端
 | 技術 | 用途 |
@@ -75,6 +98,8 @@
 | PostgreSQL 15+ | 資料庫 |
 | JWT | 認證 |
 | bcrypt 5+ | 密碼加密 |
+| Multer | 檔案上傳 |
+| Vitest | 單元/整合測試 |
 
 ---
 
@@ -84,30 +109,45 @@
 todo-app/
 ├── frontend/                 # 前端專案
 │   ├── src/
+│   │   ├── __tests__/        # 前端測試
 │   │   ├── components/       # React 組件
-│   │   │   ├── auth/         # 認證相關
-│   │   │   ├── common/       # 共用組件
-│   │   │   ├── layout/       # 佈局組件
-│   │   │   ├── projects/     # 專案相關
-│   │   │   └── kanban/       # 看板相關
+│   │   │   ├── layout/       # 佈局組件 (Layout, Navbar)
+│   │   │   ├── providers/    # Context Providers (Theme)
+│   │   │   ├── ui/           # UI 基礎組件 (Button, Input, Dialog...)
+│   │   │   └── ThemeToggle.tsx  # 主題切換組件
+│   │   ├── hooks/            # 自定義 Hooks
+│   │   ├── lib/              # 工具庫
 │   │   ├── pages/            # 頁面
-│   │   ├── store/            # 狀態管理
+│   │   │   ├── ApiTest.tsx   # API 測試頁
+│   │   │   ├── Dashboard.tsx # 儀表板
+│   │   │   ├── Login.tsx     # 登入頁
+│   │   │   ├── Profile.tsx   # 個人設定頁
+│   │   │   ├── ProjectBoard.tsx  # 看板頁
+│   │   │   ├── ProjectList.tsx   # 專案列表
+│   │   │   └── Register.tsx  # 註冊頁
 │   │   ├── services/         # API 服務
-│   │   ├── utils/            # 工具函數
+│   │   ├── store/            # 狀態管理 (Zustand)
+│   │   │   ├── authStore.ts  # 認證狀態
+│   │   │   ├── projectStore.ts  # 專案狀態
+│   │   │   ├── taskStore.ts  # 任務狀態
+│   │   │   └── themeStore.ts # 主題狀態
 │   │   └── App.tsx
-│   └── ...
+│   └── vitest.config.ts      # 測試配置
 │
 ├── backend/                  # 後端專案
 │   ├── src/
+│   │   ├── __tests__/        # 後端測試
 │   │   ├── controllers/      # 控制器
 │   │   ├── middlewares/      # 中間件
 │   │   ├── routes/           # 路由
-│   │   ├── services/         # 服務層
 │   │   ├── utils/            # 工具函數
 │   │   └── index.ts
 │   ├── prisma/
+│   │   ├── migrations/       # 資料庫遷移
 │   │   └── schema.prisma     # 資料庫 Schema
-│   └── ...
+│   ├── uploads/              # 上傳檔案目錄
+│   │   └── avatars/          # 用戶頭像
+│   └── vitest.config.ts      # 測試配置
 │
 ├── docs/                     # 文件
 │   ├── 01-project-overview.md
@@ -116,7 +156,9 @@ todo-app/
 │   ├── 04-api-design.md
 │   ├── 05-frontend-architecture.md
 │   ├── 06-features.md
-│   └── 07-deployment.md
+│   ├── 07-deployment.md
+│   ├── 08-development-roadmap.md
+│   └── 09-changelog.md       # 開發日誌
 │
 └── README.md
 ```
@@ -263,6 +305,26 @@ API 文件位於 [docs/04-api-design.md](docs/04-api-design.md)
 4. 執行資料庫遷移
 
 詳細部署指南請參閱 [docs/07-deployment.md](docs/07-deployment.md)
+
+---
+
+## 📝 開發日誌
+
+詳細開發日誌請參閱 [docs/09-changelog.md](docs/09-changelog.md)
+
+### 近期更新摘要
+
+- **2026-02-02**: 整理 SQL 遷移檔案結構
+- **2026-01-31**: 
+  - 修復看板頁面的 Bug
+  - 新增 RWD 響應式設計支援（手機、平板、桌面適配）
+  - 優化 ThemeToggle 組件
+- **2026-01-30**: 
+  - 新增個人設定頁面（Profile）
+  - 支援頭像上傳功能
+  - 新增深色/淺色主題切換
+  - 建立前後端自動化測試框架
+  - 專案初始化
 
 ---
 
